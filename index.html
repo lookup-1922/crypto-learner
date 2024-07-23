@@ -37,7 +37,6 @@
             <li>共通鍵暗号（AES暗号）</li>
             <li>公開鍵暗号（RSA暗号方式）</li>
             <li>ハイブリッド暗号</li>
-            <li>デジタル署名</li>
         </ul>
         </details>
     </div>
@@ -49,11 +48,12 @@
             <option value="aes">共通鍵暗号（AES暗号）</option>
             <option value="rsa">公開鍵暗号（RSA暗号）</option>
             <option value="hybrid">ハイブリッド暗号</option>
-            <option value="signature">デジタル署名</option>
         </select>
 
-        <label for="input">ファイルを選択：</label>
-        <input type="file" id="input">
+        <label for="data_input">データファイルを選択：</label>
+        <input type="file" id="data_input">
+        <label for="key_input">鍵ファイルを選択：</label>
+        <input type="file" id="key_input">
 
         <button id="generate_key">鍵生成</button>
         <button id="encrypt">暗号化する</button>
@@ -67,7 +67,7 @@
         <button id="generate_qr">QRコード生成</button>
     </div>
 
-    <script src="main.js"></script>
+    <script type="module" src="main.js"></script>
 </body>
 
 </html>

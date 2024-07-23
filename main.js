@@ -3,75 +3,92 @@ import init, {
     generate_rsa_key, encrypt_rsa, decrypt_rsa 
 } from './pkg/crypto_wasm.js';
 
-async function run() {
+$(document).ready(async function() {
+    
     await init();  // WASM モジュールの初期化
 
-    const modeSelect = document.getElementById('mode');
-    const inputFile = document.getElementById('input');
-    const generateKeyBtn = document.getElementById('generate_key');
-    const encryptBtn = document.getElementById('encrypt');
-    const decryptBtn = document.getElementById('decrypt');
-    const outputDiv = document.getElementById('output');
-
     // 鍵生成ボタン
-    generateKeyBtn.addEventListener('click', () => {
-        const mode = modeSelect.value;
+    $('#generate_key').on('click', async function() {
+        console.log("start");
+        const mode = $('#mode').val();
+        let keyData;
         let filename;
         if (mode === 'aes') {
-            filename = generate_aes_key();
+            keyData = generate_aes_key();
+            filename = `aes-${Date.now()}.key`;
         } else if (mode === 'rsa') {
-            filename = generate_rsa_key();
+            keyData = generate_rsa_key();
+            filename = `rsa-${Date.now()}.key`;
+        } else {
+            $('#output').text('暗号方式を選択してください。');
+            return;
         }
-        outputDiv.textContent = `生成した鍵ファイル: ${filename}`;
+        
+        // 鍵データをファイルとしてダウンロードする
+        const blob = new Blob([keyData], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = $('<a>').attr('href', url).attr('download', filename).get(0);
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        $('#output').text(`生成した鍵ファイル: ${filename} (ダウンロードが開始されました)`);
     });
 
     // 暗号化ボタン
-    encryptBtn.addEventListener('click', async () => {
-        const mode = modeSelect.value;
-        const file = inputFile.files[0];
-        if (!file) {
-            outputDiv.textContent = 'ファイルを選択してください。';
+    $('#encrypt').on('click', async function() {
+        const mode = $('#mode').val();
+        const dataFile = $('#data_input')[0].files[0];
+        const keyFile = $('#key_input')[0].files[0];
+        if (!dataFile || !keyFile) {
+            $('#output').text('データファイルと鍵ファイルの両方を選択してください。');
             return;
         }
 
-        const reader = new FileReader();
-        reader.onload = async () => {
-            const text = reader.result;
-            let result;
-            const keyFile = 'ファイル名をここに';  // 適切なファイル名を設定する必要があります
-            if (mode === 'aes') {
-                result = encrypt_aes(text, keyFile);
-            } else if (mode === 'rsa') {
-                result = encrypt_rsa(text, keyFile);
-            }
-            outputDiv.textContent = `暗号化されたデータ: ${result}`;
-        };
-        reader.readAsText(file);
+        const data = await readFileAsText(dataFile);
+        const key = await readFileAsText(keyFile);
+        let result;
+        if (mode === 'aes') {
+            result = encrypt_aes(data, key);
+        } else if (mode === 'rsa') {
+            result = encrypt_rsa(data, key);
+        } else {
+            $('#output').text('暗号方式を選択してください。');
+            return;
+        }
+        $('#output').text(`暗号化されたデータ: ${result}`);
     });
 
     // 復号化ボタン
-    decryptBtn.addEventListener('click', async () => {
-        const mode = modeSelect.value;
-        const file = inputFile.files[0];
-        if (!file) {
-            outputDiv.textContent = 'ファイルを選択してください。';
+    $('#decrypt').on('click', async function() {
+        const mode = $('#mode').val();
+        const dataFile = $('#data_input')[0].files[0];
+        const keyFile = $('#key_input')[0].files[0];
+        if (!dataFile || !keyFile) {
+            $('#output').text('データファイルと鍵ファイルの両方を選択してください。');
             return;
         }
 
-        const reader = new FileReader();
-        reader.onload = async () => {
-            const text = reader.result;
-            let result;
-            const keyFile = 'ファイル名をここに';  // 適切なファイル名を設定する必要があります
-            if (mode === 'aes') {
-                result = decrypt_aes(text, keyFile);
-            } else if (mode === 'rsa') {
-                result = decrypt_rsa(text, keyFile);
-            }
-            outputDiv.textContent = `復号化されたデータ: ${result}`;
-        };
-        reader.readAsText(file);
+        const data = await readFileAsText(dataFile);
+        const key = await readFileAsText(keyFile);
+        let result;
+        if (mode === 'aes') {
+            result = decrypt_aes(data, key);
+        } else if (mode === 'rsa') {
+            result = decrypt_rsa(data, key);
+        } else {
+            $('#output').text('暗号方式を選択してください。');
+            return;
+        }
+        $('#output').text(`復号化されたデータ: ${result}`);
     });
-}
 
-run();
+    // ファイルをテキストとして読み込むヘルパー関数
+    function readFileAsText(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsText(file);
+        });
+    }
+});
