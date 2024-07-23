@@ -7,5 +7,9 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
+aes = "0.7"
+rsa = "0.5"
+rand = "0.8"
+base64 = "0.13"
 wasm-bindgen = "0.2"
-openssl = "0.10"
+pkcs1 = { version = "0.3", features = ["alloc"] }
