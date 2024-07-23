@@ -1,18 +1,15 @@
-use aes::cipher::generic_array::GenericArray;
-use aes::Aes128;
-use base64::{decode, encode};
-use rand::rngs::OsRng;
-use rsa::{PaddingScheme, RsaPrivateKey, RsaPublicKey};
 use std::fs::File;
 use std::io::{Read, Write};
 use std::time::{SystemTime, UNIX_EPOCH};
-use wasm_bindgen::prelude::*;
+
+use aes::cipher::generic_array::GenericArray;
+use aes::{Aes128, BlockDecrypt, BlockEncrypt, NewBlockCipher};
+use base64::{decode, encode};
+use rand::rngs::OsRng;
 use rand::Rng;
-use aes::NewBlockCipher;
-use aes::BlockEncrypt;
-use aes::BlockDecrypt;
-use rsa::pkcs1::{ToRsaPrivateKey, FromRsaPublicKey, ToRsaPublicKey, FromRsaPrivateKey};
-use rsa::PublicKey;
+use rsa::pkcs1::{FromRsaPrivateKey, FromRsaPublicKey, ToRsaPrivateKey, ToRsaPublicKey};
+use rsa::{PaddingScheme, PublicKey, RsaPrivateKey, RsaPublicKey};
+use wasm_bindgen::prelude::*;
 
 // 現在のタイムスタンプを取得するヘルパー関数
 fn get_timestamp() -> String {
@@ -25,6 +22,18 @@ fn get_timestamp() -> String {
     format!("{}", in_ms)
 }
 
+// ファイルにバイト列を書き込むヘルパー関数
+fn write_to_file(filename: &str, data: &[u8]) {
+    let mut file = File::create(filename).expect("Unable to create file");
+    file.write_all(data).expect("Unable to write data");
+}
+
+// ファイルからバイト列を読み込むヘルパー関数
+fn read_from_file(filename: &str, buffer: &mut [u8]) {
+    let mut file = File::open(filename).expect("Unable to open file");
+    file.read_exact(buffer).expect("Unable to read data");
+}
+
 // AES鍵生成
 #[wasm_bindgen]
 pub fn generate_aes_key() -> String {
@@ -32,17 +41,15 @@ pub fn generate_aes_key() -> String {
     let mut rng = OsRng;
     rng.fill(&mut key);
     let filename = format!("aes-{}.key", get_timestamp());
-    let mut file = File::create(&filename).expect("Unable to create file");
-    file.write_all(&key).expect("Unable to write data");
+    write_to_file(&filename, &key);
     filename
 }
 
 // AES暗号化
 #[wasm_bindgen]
 pub fn encrypt_aes(data: &str, key_file: &str) -> String {
-    let mut file = File::open(key_file).expect("Unable to open file");
     let mut key = [0u8; 16];
-    file.read_exact(&mut key).expect("Unable to read key");
+    read_from_file(key_file, &mut key);
     let cipher = Aes128::new(GenericArray::from_slice(&key));
     let mut block = GenericArray::clone_from_slice(&data.as_bytes()[..16]);
     cipher.encrypt_block(&mut block);
@@ -52,9 +59,8 @@ pub fn encrypt_aes(data: &str, key_file: &str) -> String {
 // AES復号化
 #[wasm_bindgen]
 pub fn decrypt_aes(data: &str, key_file: &str) -> String {
-    let mut file = File::open(key_file).expect("Unable to open file");
     let mut key = [0u8; 16];
-    file.read_exact(&mut key).expect("Unable to read key");
+    read_from_file(key_file, &mut key);
     let cipher = Aes128::new(GenericArray::from_slice(&key));
     let encrypted_data = decode(data).expect("Invalid base64 data");
     let mut block = GenericArray::clone_from_slice(&encrypted_data);
@@ -77,23 +83,18 @@ pub fn generate_rsa_key() -> String {
         .expect("Unable to convert public key to PEM");
     let filename_priv = format!("rsa-{}-private.key", get_timestamp());
     let filename_pub = format!("rsa-{}-public.key", get_timestamp());
-    let mut file_priv = File::create(&filename_priv).expect("Unable to create private key file");
-    let mut file_pub = File::create(&filename_pub).expect("Unable to create public key file");
-    file_priv
-        .write_all(priv_key_pem.as_bytes())
-        .expect("Unable to write private key");
-    file_pub
-        .write_all(pub_key_pem.as_bytes())
-        .expect("Unable to write public key");
+    write_to_file(&filename_priv, priv_key_pem.as_bytes());
+    write_to_file(&filename_pub, pub_key_pem.as_bytes());
     filename_priv
 }
 
 // RSA暗号化
 #[wasm_bindgen]
 pub fn encrypt_rsa(data: &str, key_file: &str) -> String {
-    let mut file = File::open(key_file).expect("Unable to open file");
     let mut pem = String::new();
-    file.read_to_string(&mut pem)
+    File::open(key_file)
+        .expect("Unable to open file")
+        .read_to_string(&mut pem)
         .expect("Unable to read key file");
     let pub_key = RsaPublicKey::from_pkcs1_pem(&pem).expect("Invalid public key");
     let padding = PaddingScheme::new_pkcs1v15_encrypt();
@@ -107,9 +108,10 @@ pub fn encrypt_rsa(data: &str, key_file: &str) -> String {
 // RSA復号化
 #[wasm_bindgen]
 pub fn decrypt_rsa(data: &str, key_file: &str) -> String {
-    let mut file = File::open(key_file).expect("Unable to open file");
     let mut pem = String::new();
-    file.read_to_string(&mut pem)
+    File::open(key_file)
+        .expect("Unable to open file")
+        .read_to_string(&mut pem)
         .expect("Unable to read key file");
     let priv_key = RsaPrivateKey::from_pkcs1_pem(&pem).expect("Invalid private key");
     let padding = PaddingScheme::new_pkcs1v15_encrypt();
