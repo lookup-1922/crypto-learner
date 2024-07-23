@@ -1,86 +1,77 @@
-// Import the necessary functions from the compiled WASM module
-import init, { generate_aes_key, encrypt_aes, decrypt_aes, generate_rsa_key, encrypt_rsa, decrypt_rsa } from './pkg/crypto_learner.js';
+import init, { 
+    generate_aes_key, encrypt_aes, decrypt_aes, 
+    generate_rsa_key, encrypt_rsa, decrypt_rsa 
+} from './pkg/crypto_wasm.js';
 
-// Initialize the application
-async function initApp() {
-    // Initialize the WASM module
-    await init();
+async function run() {
+    await init();  // WASM モジュールの初期化
 
-    // Get references to HTML elements
     const modeSelect = document.getElementById('mode');
-    const fileInput = document.getElementById('input');
-    const generateKeyButton = document.getElementById('generate_key');
-    const encryptButton = document.getElementById('encrypt');
-    const decryptButton = document.getElementById('decrypt');
+    const inputFile = document.getElementById('input');
+    const generateKeyBtn = document.getElementById('generate_key');
+    const encryptBtn = document.getElementById('encrypt');
+    const decryptBtn = document.getElementById('decrypt');
     const outputDiv = document.getElementById('output');
 
-    let keyFileName = '';
-
-    // Add event listener for the "鍵生成" button
-    generateKeyButton.addEventListener('click', async () => {
+    // 鍵生成ボタン
+    generateKeyBtn.addEventListener('click', () => {
         const mode = modeSelect.value;
+        let filename;
         if (mode === 'aes') {
-            // Generate an AES key and display the filename
-            keyFileName = generate_aes_key();
-            outputDiv.textContent = `AES鍵が生成されました: ${keyFileName}`;
+            filename = generate_aes_key();
         } else if (mode === 'rsa') {
-            // Generate RSA keys and display the filename
-            keyFileName = generate_rsa_key();
-            outputDiv.textContent = `RSA鍵が生成されました: ${keyFileName}`;
+            filename = generate_rsa_key();
         }
+        outputDiv.textContent = `生成した鍵ファイル: ${filename}`;
     });
 
-    // Add event listener for the "暗号化する" button
-    encryptButton.addEventListener('click', async () => {
+    // 暗号化ボタン
+    encryptBtn.addEventListener('click', async () => {
         const mode = modeSelect.value;
-        const file = fileInput.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = async () => {
-                const text = reader.result;
-                let encryptedText = '';
-                if (mode === 'aes') {
-                    // Encrypt the text using AES and display the result
-                    encryptedText = encrypt_aes(text, keyFileName);
-                } else if (mode === 'rsa') {
-                    // Encrypt the text using RSA and display the result
-                    encryptedText = encrypt_rsa(text, keyFileName);
-                }
-                outputDiv.textContent = `暗号化されたテキスト: ${encryptedText}`;
-            };
-            reader.readAsText(file);
+        const file = inputFile.files[0];
+        if (!file) {
+            outputDiv.textContent = 'ファイルを選択してください。';
+            return;
         }
+
+        const reader = new FileReader();
+        reader.onload = async () => {
+            const text = reader.result;
+            let result;
+            const keyFile = 'ファイル名をここに';  // 適切なファイル名を設定する必要があります
+            if (mode === 'aes') {
+                result = encrypt_aes(text, keyFile);
+            } else if (mode === 'rsa') {
+                result = encrypt_rsa(text, keyFile);
+            }
+            outputDiv.textContent = `暗号化されたデータ: ${result}`;
+        };
+        reader.readAsText(file);
     });
 
-    // Add event listener for the "復号する" button
-    decryptButton.addEventListener('click', async () => {
+    // 復号化ボタン
+    decryptBtn.addEventListener('click', async () => {
         const mode = modeSelect.value;
-        const file = fileInput.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = async () => {
-                const encryptedText = reader.result;
-                let decryptedText = '';
-                if (mode === 'aes') {
-                    // Decrypt the text using AES and display the result
-                    decryptedText = decrypt_aes(encryptedText, keyFileName);
-                } else if (mode === 'rsa') {
-                    // Decrypt the text using RSA and display the result
-                    decryptedText = decrypt_rsa(encryptedText, keyFileName);
-                }
-                outputDiv.textContent = `復号されたテキスト: ${decryptedText}`;
-            };
-            reader.readAsText(file);
+        const file = inputFile.files[0];
+        if (!file) {
+            outputDiv.textContent = 'ファイルを選択してください。';
+            return;
         }
-    });
 
-    // Add event listener for the "QRコード生成" button
-    const qrButton = document.getElementById('generate_qr');
-    qrButton.addEventListener('click', async () => {
-        // Placeholder for QR code generation
-        outputDiv.textContent = 'QRコード生成機能はまだ実装されていません。';
+        const reader = new FileReader();
+        reader.onload = async () => {
+            const text = reader.result;
+            let result;
+            const keyFile = 'ファイル名をここに';  // 適切なファイル名を設定する必要があります
+            if (mode === 'aes') {
+                result = decrypt_aes(text, keyFile);
+            } else if (mode === 'rsa') {
+                result = decrypt_rsa(text, keyFile);
+            }
+            outputDiv.textContent = `復号化されたデータ: ${result}`;
+        };
+        reader.readAsText(file);
     });
 }
 
-// Initialize the app
-initApp();
+run();
