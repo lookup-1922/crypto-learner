@@ -13,3 +13,7 @@ rand = "0.8"
 base64 = "0.13"
 wasm-bindgen = "0.2"
 pkcs1 = { version = "0.3", features = ["alloc"] }
+
+[dependencies.getrandom]
+version = "0.2"
+features = ["js"]
