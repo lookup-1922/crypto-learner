@@ -47,7 +47,6 @@
         <select name="mode" id="mode">
             <option value="aes">共通鍵暗号（AES暗号）</option>
             <option value="rsa">公開鍵暗号（RSA暗号）</option>
-            <option value="hybrid">ハイブリッド暗号</option>
         </select>
 
         <label for="data_input">データファイルを選択：</label>
@@ -64,9 +63,14 @@
 
     <div id="share">
         <h2>データの共有</h2>
+
+        <label for="share_date_input">共有するデータを選択：</label>
+        <input type="file" id="share_date_input">
+
         <button id="generate_qr">QRコード生成</button>
     </div>
 
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script type="module" src="main.js"></script>
 </body>
 

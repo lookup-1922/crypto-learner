@@ -40,9 +40,7 @@ pub fn generate_aes_key() -> String {
     let mut key = [0u8; 16];
     let mut rng = OsRng;
     rng.fill(&mut key);
-    let filename = format!("aes-{}.key", get_timestamp());
-    write_to_file(&filename, &key);
-    filename
+    base64::encode(&key) // キーデータをbase64エンコードして返す
 }
 
 // AES暗号化

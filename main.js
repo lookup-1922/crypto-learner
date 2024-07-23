@@ -1,15 +1,16 @@
 import init, { 
     generate_aes_key, encrypt_aes, decrypt_aes, 
     generate_rsa_key, encrypt_rsa, decrypt_rsa 
-} from './pkg/crypto_wasm.js';
+} from './pkg/crypto_learner.js';
 
 $(document).ready(async function() {
+    console.log("ready")
     
     await init();  // WASM モジュールの初期化
 
     // 鍵生成ボタン
     $('#generate_key').on('click', async function() {
-        console.log("start");
+        console.log("generate_key");
         const mode = $('#mode').val();
         let keyData;
         let filename;
@@ -20,7 +21,7 @@ $(document).ready(async function() {
             keyData = generate_rsa_key();
             filename = `rsa-${Date.now()}.key`;
         } else {
-            $('#output').text('暗号方式を選択してください。');
+            $('#output').html('現在サポートされていない設定です。');
             return;
         }
         
@@ -36,6 +37,8 @@ $(document).ready(async function() {
 
     // 暗号化ボタン
     $('#encrypt').on('click', async function() {
+        console.log("encrypt");
+
         const mode = $('#mode').val();
         const dataFile = $('#data_input')[0].files[0];
         const keyFile = $('#key_input')[0].files[0];
