@@ -17,10 +17,10 @@ $(document).ready(async function () {
         let filename;
         if (mode === 'aes') {
             keyData = generate_aes_key();
-            filename = `aes-${Date.now()}.key`;
+            filename = `aes-${getFormattedDate()}.key`;
         } else if (mode === 'rsa') {
             keyData = generate_rsa_key();
-            filename = `rsa-${Date.now()}.key`;
+            filename = `rsa-${getFormattedDate()}.key`;
         } else {
             $('#output').html('現在サポートされていない設定です。');
             return;
@@ -113,13 +113,31 @@ $(document).ready(async function () {
         $('#output').text(`暗号化されたデータを ${dencryptedFileName} としてダウンロードしました。`);
     });
 
-    // ファイルをテキストとして読み込むヘルパー関数
-    function readFileAsText(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = reject;
-            reader.readAsText(file);
-        });
-    }
 });
+
+// 現在時刻をフォーマットして取得する関数
+function getFormattedDate() {
+    const now = new Date();
+
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0'); // 月は0から始まるため+1する
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    // 毎秒単位のミリ秒数を取り、ゼロパディングする
+    const milliseconds = String(now.getMilliseconds()).padStart(3, '0').substring(0, 2);
+
+    // 形式を 'yyyymmddhhmmss' にする
+    return `${year}${month}${day}${hours}${minutes}${seconds}${milliseconds}`;
+}
+
+// ファイルをテキストとして読み込むヘルパー関数
+function readFileAsText(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsText(file);
+    });
+}
