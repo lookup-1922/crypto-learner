@@ -18,25 +18,36 @@
             <details>
                 <summary>このツールの説明</summary>
                 <p>QRコードによりデータの共有をするためのものです。</p>
+                <li>読み取ったデータを保存する場合、データをテキストエリアに入力し、「ファイルを作成」をクリックしてください。</li>
+                <li>ファイルからQRコードを作成する場合、ファイルを選択し、「QRコードを作成」をクリックしてください。</li>
                 <p><a href="index.html">データの暗号化</a></p>
             </details>
         </section>
 
         <section id="share">
             <h2>データの共有</h2>
-                <div class="form-group">
-                    <label for="share_date_input">共有するデータを選択：</label>
-                    <input type="file" id="share_date_input">
-                </div>
+            <div class="form-group" id="get">
+                <label for="shared_text_input">QRコードの内容を入力:</label>
+                <textarea id="shared_text_input"></textarea>
+            </div>
 
+            <div class="form-group" id="post">
+                <label for="share_date_input">共有するデータを選択:</label>
+                <input type="file" id="share_date_input">
+            </div>
+
+            <div class="button-group">
                 <button type="button" id="generate_qr">QRコード生成</button>
+                <button type="button" id="generate_file">ファイルを作成</button>
+            </div>
+
+            <div id="output"></div>
+            </form>
         </section>
     </main>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script>
-
-    </script>
+    <script src="share.js"></script>
 </body>
 
 </html>

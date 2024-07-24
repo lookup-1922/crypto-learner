@@ -40,16 +40,21 @@ label {
     font-weight: bold;
 }
 
-select, input[type="file"], button {
+select, input[type="file"], textarea, button {
     display: inline-block;
     vertical-align: middle;
     margin-top: 10px;
 }
 
-input[type="file"] {
+input[type="file"], textarea {
     padding: 5px;
     border: 1px solid #ddd;
     border-radius: 4px;
+    width: 100%;
+}
+
+textarea {
+    height: 150px;
 }
 
 button {
@@ -61,7 +66,7 @@ button {
     cursor: pointer;
     font-size: 1em;
     transition: background-color 0.3s ease;
-    margin-left: 10px;
+    margin-top: 10px;
 }
 
 button:hover {
@@ -90,10 +95,62 @@ button:disabled {
     margin-top: 30px;
 }
 
-#share button {
-    background-color: #28a745;
+/* プルダウンメニュー全体のスタイル */
+select {
+    display: inline-block;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+    color: #333;
+    font-size: 1em;
+    line-height: 1.5;
+    width: 100%; /* 必要に応じて幅を調整 */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-#share button:hover {
-    background-color: #218838;
+/* プルダウンメニューのフォーカス時のスタイル */
+select:focus {
+    border-color: #007bff;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+/* オプションのスタイル */
+option {
+    padding: 10px;
+}
+
+/* プルダウンの矢印アイコンのカスタマイズ */
+select::-ms-expand {
+    display: none; /* Internet Explorer での矢印を非表示にします */
+}
+
+select {
+    -webkit-appearance: none; /* Chrome, Safari での矢印を非表示にします */
+    -moz-appearance: none; /* Firefox での矢印を非表示にします */
+    appearance: none; /* 標準の矢印を非表示にします */
+}
+
+/* プルダウンのカスタム矢印を追加 */
+.select-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%; /* 必要に応じて幅を調整 */
+}
+
+.select-wrapper::after {
+    content: '▼'; /* 矢印の内容 */
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: #333;
+}
+
+/* select のスタイルを調整 */
+select {
+    padding-right: 30px; /* 矢印アイコンのスペースを確保 */
 }
