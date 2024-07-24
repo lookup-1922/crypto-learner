@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Share</title>
+    <link rel="stylesheet" href="style.css" type="text/css">
+</head>
+
+<body>
+    <header>
+        <h1>File Share</h1>
+    </header>
+
+    <main>
+        <section id="explanation">
+            <details>
+                <summary>このツールの説明</summary>
+                <p>QRコードによりデータの共有をするためのものです。</p>
+                <p><a href="index.html">データの暗号化</a></p>
+            </details>
+        </section>
+
+        <section id="share">
+            <h2>データの共有</h2>
+                <div class="form-group">
+                    <label for="share_date_input">共有するデータを選択：</label>
+                    <input type="file" id="share_date_input">
+                </div>
+
+                <button type="button" id="generate_qr">QRコード生成</button>
+        </section>
+    </main>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+
+    </script>
+</body>
+
+</html>
