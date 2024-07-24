@@ -1,0 +1,15 @@
+{
+  "name": "crypto-learner",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "crypto_learner_bg.wasm",
+    "crypto_learner.js",
+    "crypto_learner.d.ts"
+  ],
+  "main": "crypto_learner.js",
+  "types": "crypto_learner.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
