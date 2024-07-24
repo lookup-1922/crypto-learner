@@ -4,13 +4,14 @@ import init, {
 } from './pkg/crypto_learner.js';
 
 $(document).ready(async function() {
-    console.log("ready")
+    console.log("ready");
     
     await init();  // WASM モジュールの初期化
 
     // 鍵生成ボタン
     $('#generate_key').on('click', async function() {
         console.log("generate_key");
+
         const mode = $('#mode').val();
         let keyData;
         let filename;
@@ -51,9 +52,9 @@ $(document).ready(async function() {
         const key = await readFileAsText(keyFile);
         let result;
         if (mode === 'aes') {
-            result = encrypt_aes(data, key);
+            result = await encrypt_aes(data, key);
         } else if (mode === 'rsa') {
-            result = encrypt_rsa(data, key);
+            result = await encrypt_rsa(data, key);
         } else {
             $('#output').text('暗号方式を選択してください。');
             return;
@@ -75,9 +76,9 @@ $(document).ready(async function() {
         const key = await readFileAsText(keyFile);
         let result;
         if (mode === 'aes') {
-            result = decrypt_aes(data, key);
+            result = await decrypt_aes(data, key);
         } else if (mode === 'rsa') {
-            result = decrypt_rsa(data, key);
+            result = await decrypt_rsa(data, key);
         } else {
             $('#output').text('暗号方式を選択してください。');
             return;
