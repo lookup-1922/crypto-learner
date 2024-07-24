@@ -108,6 +108,7 @@ dependencies = [
  "aes",
  "base64",
  "getrandom",
+ "js-sys",
  "pkcs1 0.3.3",
  "rand",
  "rsa",

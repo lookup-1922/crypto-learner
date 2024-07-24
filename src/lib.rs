@@ -4,7 +4,7 @@ use aes::{Aes128, BlockDecrypt, BlockEncrypt, NewBlockCipher};
 use base64::{decode, encode};
 use rand::rngs::OsRng;
 use rand::Rng;
-use rsa::pkcs1::{FromRsaPrivateKey, FromRsaPublicKey, ToRsaPrivateKey};
+use rsa::pkcs1::{FromRsaPrivateKey, FromRsaPublicKey, ToRsaPrivateKey, ToRsaPublicKey};
 use rsa::{PaddingScheme, PublicKey, RsaPrivateKey, RsaPublicKey};
 use zeroize::Zeroizing;
 
@@ -77,12 +77,20 @@ pub fn decrypt_aes(ciphertext: &str, key: &str) -> Result<String, JsValue> {
 }
 
 #[wasm_bindgen]
-pub fn generate_rsa_key() -> Result<String, JsValue> {
+pub fn generate_rsa_key() -> Result<JsValue, JsValue> {
     let mut rng = OsRng;
     let bits = 2048;
     let priv_key = RsaPrivateKey::new(&mut rng, bits).map_err(|e| JsValue::from_str(&e.to_string()))?;
+    
     let priv_key_pem = Zeroizing::new(priv_key.to_pkcs1_pem().map_err(|e| JsValue::from_str(&e.to_string()))?);
-    Ok(priv_key_pem.to_string())
+    let pub_key_pem = Zeroizing::new(priv_key.to_public_key().to_pkcs1_pem().map_err(|e| JsValue::from_str(&e.to_string()))?);
+
+    // Create a JavaScript object to return both keys
+    let keys = js_sys::Object::new();
+    js_sys::Reflect::set(&keys, &"public_key".into(), &JsValue::from_str(&pub_key_pem.to_string())).unwrap();
+    js_sys::Reflect::set(&keys, &"private_key".into(), &JsValue::from_str(&priv_key_pem.to_string())).unwrap();
+
+    Ok(keys.into())
 }
 
 #[wasm_bindgen]

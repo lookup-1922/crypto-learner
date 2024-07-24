@@ -13,30 +13,54 @@ $(document).ready(async function () {
         console.log("generate_key");
 
         const mode = $('#mode').val();
-        let keyData;
-        let filename;
         if (mode === 'aes') {
-            keyData = generate_aes_key();
-            filename = `aes-${getFormattedDate()}.key`;
+            // AES鍵生成
+            const keyData = generate_aes_key();
+            const filename = `aes-${getFormattedDate()}.key`;
+
+            // AES鍵ファイルとしてダウンロード
+            const blob = new Blob([keyData], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = $('<a>').attr('href', url).attr('download', filename).get(0);
+            a.click();
+            URL.revokeObjectURL(url);
+
+            $('#output').text(`鍵ファイル: ${filename} (ダウンロードが開始されました)`);
         } else if (mode === 'rsa') {
-            keyData = generate_rsa_key();
-            filename = `rsa-${getFormattedDate()}.key`;
+            try {
+                // RSA鍵生成
+                const keys = await generate_rsa_key();
+                const publicKey = keys.public_key;
+                const privateKey = keys.private_key;
+
+                // 公開鍵と秘密鍵をそれぞれファイルとしてダウンロード
+                const publicBlob = new Blob([publicKey], { type: 'text/plain' });
+                const privateBlob = new Blob([privateKey], { type: 'text/plain' });
+
+                const publicUrl = URL.createObjectURL(publicBlob);
+                const privateUrl = URL.createObjectURL(privateBlob);
+
+                // 公開鍵ファイルのダウンロード
+                const publicA = $('<a>').attr('href', publicUrl).attr('download', `rsa-public-${getFormattedDate()}.key`).get(0);
+                publicA.click();
+
+                // 秘密鍵ファイルのダウンロード
+                const privateA = $('<a>').attr('href', privateUrl).attr('download', `rsa-private-${getFormattedDate()}.key`).get(0);
+                privateA.click();
+
+                URL.revokeObjectURL(publicUrl);
+                URL.revokeObjectURL(privateUrl);
+
+                $('#output').text(`公開鍵と秘密鍵ファイルのダウンロードが開始されました`);
+            } catch (error) {
+                $('#output').text(`エラーが発生しました: ${error.message}`);
+            }
         } else {
             $('#output').html('現在サポートされていない設定です。');
-            return;
         }
-
-        // 鍵データをファイルとしてダウンロードする
-        const blob = new Blob([keyData], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = $('<a>').attr('href', url).attr('download', filename).get(0);
-        a.click();
-        URL.revokeObjectURL(url);
-
-        $('#output').text(`鍵ファイル: ${filename} (ダウンロードが開始されました)`);
     });
 
-    //暗号化ボタン
+    // 暗号化ボタン
     $('#encrypt').on('click', async function () {
         console.log("encrypt");
 
@@ -74,7 +98,6 @@ $(document).ready(async function () {
         $('#output').text(`暗号化されたデータを ${encryptedFileName} としてダウンロードしました。`);
     });
 
-
     // 復号化ボタン
     $('#decrypt').on('click', async function () {
         console.log("decrypt");
@@ -103,14 +126,14 @@ $(document).ready(async function () {
         const originalFileName = dataFile.name;
         const dencryptedFileName = `dencrypted-${originalFileName}`;
 
-        // 暗号化されたデータをファイルとしてダウンロードする
+        // 復号化されたデータをファイルとしてダウンロードする
         const blob = new Blob([result], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const a = $('<a>').attr('href', url).attr('download', dencryptedFileName).get(0);
         a.click();
         URL.revokeObjectURL(url);
 
-        $('#output').text(`暗号化されたデータを ${dencryptedFileName} としてダウンロードしました。`);
+        $('#output').text(`復号化されたデータを ${dencryptedFileName} としてダウンロードしました。`);
     });
 
 });
