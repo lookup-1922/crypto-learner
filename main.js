@@ -16,7 +16,7 @@ $(document).ready(async function () {
         if (mode === "aes") {
             // AES鍵生成
             const keyData = generate_aes_key();
-            const filename = `aes-${getFormattedDate()}.key`;
+            const filename = `aes-${getFormattedDate()}.pem`;
 
             // AES鍵ファイルとしてダウンロード
             const blob = new Blob([keyData], { type: "text/plain" });
@@ -41,11 +41,11 @@ $(document).ready(async function () {
                 const privateUrl = URL.createObjectURL(privateBlob);
 
                 // 公開鍵ファイルのダウンロード
-                const publicA = $("<a>").attr("href", publicUrl).attr("download", `rsa-public-${getFormattedDate()}.key`).get(0);
+                const publicA = $("<a>").attr("href", publicUrl).attr("download", `rsa-public-${getFormattedDate()}.pem`).get(0);
                 publicA.click();
 
                 // 秘密鍵ファイルのダウンロード
-                const privateA = $("<a>").attr("href", privateUrl).attr("download", `rsa-private-${getFormattedDate()}.key`).get(0);
+                const privateA = $("<a>").attr("href", privateUrl).attr("download", `rsa-private-${getFormattedDate()}.pem`).get(0);
                 privateA.click();
 
                 URL.revokeObjectURL(publicUrl);
@@ -143,7 +143,7 @@ function getFormattedDate() {
     const now = new Date();
 
     const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, "0"); // 月は0から始まるため+1する
+    const month = String(now.getMonth() + 1).padStart(2, "0");
     const day = String(now.getDate()).padStart(2, "0");
     const hours = String(now.getHours()).padStart(2, "0");
     const minutes = String(now.getMinutes()).padStart(2, "0");
@@ -155,7 +155,7 @@ function getFormattedDate() {
     return `${year}${month}${day}${hours}${minutes}${seconds}${milliseconds}`;
 }
 
-// ファイルをテキストとして読み込むヘルパー関数
+// ファイルをテキストとして読み込む関数
 function readFileAsText(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
