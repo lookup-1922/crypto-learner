@@ -6,7 +6,6 @@ use rand::Rng;
 use rsa::pkcs1::{FromRsaPrivateKey, FromRsaPublicKey, ToRsaPrivateKey, ToRsaPublicKey};
 use rsa::{PaddingScheme, PublicKey, RsaPrivateKey, RsaPublicKey};
 use wasm_bindgen::prelude::*;
-use zeroize::Zeroizing;
 
 #[wasm_bindgen]
 pub fn generate_aes_key() -> String {
@@ -16,33 +15,9 @@ pub fn generate_aes_key() -> String {
     base64::encode(&key) // キーデータをbase64エンコードして返す
 }
 
-fn pkcs7_pad(data: &[u8], block_size: usize) -> Vec<u8> {
-    let padding_len = block_size - (data.len() % block_size);
-    let mut padded_data = Vec::with_capacity(data.len() + padding_len);
-    padded_data.extend_from_slice(data);
-    padded_data.extend(vec![padding_len as u8; padding_len]);
-    padded_data
-}
-
-fn pkcs7_unpad(data: &[u8]) -> Result<Vec<u8>, &'static str> {
-    if data.is_empty() {
-        return Err("data is empty");
-    }
-    let padding_len = *data.last().unwrap() as usize;
-    if padding_len == 0 || padding_len > data.len() {
-        return Err("invalid padding length");
-    }
-    for &byte in &data[data.len() - padding_len..] {
-        if byte as usize != padding_len {
-            return Err("invalid padding");
-        }
-    }
-    Ok(data[..data.len() - padding_len].to_vec())
-}
-
 #[wasm_bindgen]
 pub fn encrypt_aes(plaintext: &str, key: &str) -> Result<String, JsValue> {
-    let key = decode(key).map_err(|e| JsValue::from_str(&e.to_string()))?;
+    let key = decode(key).map_err(|e: base64::DecodeError| JsValue::from_str(&e.to_string()))?;
     let cipher = Aes256::new(GenericArray::from_slice(&key));
 
     let padded_plaintext = pkcs7_pad(plaintext.as_bytes(), 16);
@@ -77,6 +52,30 @@ pub fn decrypt_aes(ciphertext: &str, key: &str) -> Result<String, JsValue> {
     Ok(plaintext)
 }
 
+fn pkcs7_pad(data: &[u8], block_size: usize) -> Vec<u8> {
+    let padding_len = block_size - (data.len() % block_size);
+    let mut padded_data = Vec::with_capacity(data.len() + padding_len);
+    padded_data.extend_from_slice(data);
+    padded_data.resize(padded_data.len() + padding_len, padding_len as u8);
+    padded_data
+}
+
+fn pkcs7_unpad(data: &[u8]) -> Result<Vec<u8>, &'static str> {
+    if data.is_empty() {
+        return Err("data is empty");
+    }
+    let padding_len = data.last().copied().unwrap_or(0) as usize;
+    if padding_len == 0
+        || padding_len > data.len()
+        || data[data.len() - padding_len..]
+            .iter()
+            .any(|&byte| byte as usize != padding_len)
+    {
+        return Err("invalid padding length");
+    }
+    Ok(data[..data.len() - padding_len].to_vec())
+}
+
 #[wasm_bindgen]
 pub fn generate_rsa_key() -> Result<JsValue, JsValue> {
     let mut rng = OsRng;
@@ -84,30 +83,26 @@ pub fn generate_rsa_key() -> Result<JsValue, JsValue> {
     let priv_key =
         RsaPrivateKey::new(&mut rng, bits).map_err(|e| JsValue::from_str(&e.to_string()))?;
 
-    let priv_key_pem = Zeroizing::new(
-        priv_key
-            .to_pkcs1_pem()
-            .map_err(|e| JsValue::from_str(&e.to_string()))?,
-    );
-    let pub_key_pem = Zeroizing::new(
-        priv_key
-            .to_public_key()
-            .to_pkcs1_pem()
-            .map_err(|e| JsValue::from_str(&e.to_string()))?,
-    );
+    let priv_key_pem = priv_key
+        .to_pkcs1_pem()
+        .map_err(|e| JsValue::from_str(&e.to_string()))?;
+    let pub_key_pem = priv_key
+        .to_public_key()
+        .to_pkcs1_pem()
+        .map_err(|e| JsValue::from_str(&e.to_string()))?;
 
     // Create a JavaScript object to return both keys
     let keys = js_sys::Object::new();
     js_sys::Reflect::set(
         &keys,
         &"public_key".into(),
-        &JsValue::from_str(&pub_key_pem.to_string()),
+        &JsValue::from_str(&pub_key_pem),
     )
     .unwrap();
     js_sys::Reflect::set(
         &keys,
         &"private_key".into(),
-        &JsValue::from_str(&priv_key_pem.to_string()),
+        &JsValue::from_str(&priv_key_pem),
     )
     .unwrap();
 
